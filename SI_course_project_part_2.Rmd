@@ -1,0 +1,125 @@
+---
+title: "Course Project Statistical Inference, Part 2"
+author: 'Author: Hendrik L.'
+date: "August 2015"
+output: pdf_document
+---
+
+```{r setoptions, echo=FALSE, results='hide', message=FALSE}
+# knitr library for processing the present R markdown
+library(knitr)
+opts_chunk$set(echo = FALSE, results = "hide", cache = FALSE)
+
+# ggplot2 library for enhanced plotting
+library(ggplot2)
+
+# container library of the ToothGrowth data
+library(datasets)
+```
+
+### Overview
+
+This project part applies methods from the JHU/Coursera Statistical inference course in order to investigate the ToothGrowth data set. This dataset resulted from a study done by E. W. Crampton in 1947 on the growth of odontoblast cells (sic!) of the incisor teeth as a criterion of vitamin C intake of the guinea pig during a feeding period of 42 days. The study was published here: [The Journal of Nutrition 33(5): 491-504.](http://jn.nutrition.org/content/33/5/491.full.pdf)
+
+### 1. Retrieval and exploratory analysis of the ToothGrowth data
+
+The ToothGrowth dataset is part of the R datasets library. Firstly, the visualization of the data structure and a basic summary of the statistical properties of the dataset are applied:
+
+```{r, echo = TRUE, results = 'markup'}
+data(ToothGrowth)
+str(ToothGrowth)
+summary(ToothGrowth)
+nlevels(as.factor(ToothGrowth$dose))
+```
+
+The analysis above suggests to transform the numeric `dose` variable into a categorical variable, because there are just 3 different dose levels in the whole dataset. The following box plot shows how much the continuous variable `length of odontoblasts cells` (measured in microns) varies with the levels of the two categorical variables `supplement` and `dose`. 
+
+\pagebreak
+
+```{r, echo = TRUE, results = 'markup'}
+tgData <- ToothGrowth
+tgData$dose <- as.factor(tgData$dose)
+levels(tgData$supp) <- c("Orange juice", "Ascorbic acid")
+ggplot(tgData, aes(x = dose, y = len)) + 
+  facet_grid(. ~ supp) +
+  geom_boxplot(aes(fill = supp), show_guide = FALSE) +
+  labs(title = "Length of odontoblast cells in guinea pigs after 42 days", 
+    x = "Vitamin C dose (in milligram per day)",
+    y = "Length of odontoblasts cells (in micron)")
+```
+
+### 2. Basic data summary
+
+The box plot of the data shows that odontoblast cells grow more with increasing intake dosage of vitamin C. This holds true for both orange juice and ascorbic acid. With a lower dosage, orange juice appears to be more effective than ascorbic acid. However, this difference seems to vanish with an increased dosage.
+
+\pagebreak
+
+### 3. Confidence interval & hypothesis tests
+
+### 3.1. Test no. 1
+
+Let us assume that vitamin C in orange juice and ascorbic acid leads to the same growth of odontoblast cells across the data set.
+
+```{r, echo = TRUE, results = 'markup'}
+hypothesisTest1 <- t.test(len ~ supp, data = tgData)
+hypothesisTest1$conf.int
+hypothesisTest1$p.value
+```
+The zero lies within the confidence interval.  
+The p-value is greater than the threshold of 0.05.  
+The hypothesis cannot be rejected.  
+
+### 3.2. Test no. 2
+
+Let us assume that vitamin C in orange juice and ascorbic acid leads to the same growth of odontoblast cells for a dosage of 0.5mg per day.
+
+```{r, echo = TRUE, results = 'markup'}
+hypothesisTest2 <- t.test(len ~ supp, data = subset(tgData, dose == 0.5))
+hypothesisTest2$conf.int
+hypothesisTest2$p.value
+```
+The zero lies outside of the confidence interval.  
+The p-value lies below the threshold of 0.05.  
+The hypothesis can be rejected, which suggests that the alternative shall be accepted:   
+A dosage of 0.5mg vitamin C in orange juice leads to a higher growth of odontoblast cells than the same amount of ascorbic acid.
+
+### 3.3. Test no. 3
+
+Let us assume that a dosage of 1mg vitamin C per day (via orange juice and ascorbic acid) leads to the same growth of odontoblast cells.
+
+```{r, echo = TRUE, results = 'markup'}
+hypothesisTest3 <- t.test(len ~ supp, data = subset(tgData, dose == 1))
+hypothesisTest3$conf.int
+hypothesisTest3$p.value
+```
+The zero lies outside of the confidence interval.  
+The p-value lies below the threshold of 0.05.  
+The hypothesis can be rejected, which suggests that the alternative shall be accepted:   
+A dosage of 1mg vitamin C in orange juice leads to a higher growth of odontoblast cells than the same amount of ascorbic acid.
+
+### 3.4. Test no. 4
+
+Let us assume that a dosage of 2mg vitamin C per day (via orange juice and ascorbic acid) leads to the same growth of odontoblast cells.
+
+```{r, echo = TRUE, results = 'markup'}
+hypothesisTest4 <- t.test(len ~ supp, data = subset(tgData, dose == 2))
+hypothesisTest4$conf.int
+hypothesisTest4$p.value
+```
+The zero lies within the confidence interval.  
+The p-value is greater than the threshold of 0.05.  
+The hypothesis cannot be rejected.  
+
+### 4. Conclusions
+
+For dosages of 0.5mg and 1mg per day, the ToothGrowth dataset suggests that vitamin C intake from orange juice leads a higher growth of odontoblast cells in guinea pigs than from ascorbic acid. However, this effect vanishes with the higher dosage of 2mg per day. Therefore, the accuracy of the assertions we derived from our inital analysis and from the box plot could be confirmed by means of the 4 hypothesis tests.
+
+The underlying assumptions of this work are:
+
+* the phenomenon of odontoblast cell growth follows a normal distribution
+* there were no other factors that influenced odontoblast growth significantly (during Crampton's study)
+  
+&nbsp;  
+  
+&nbsp;  
+  
